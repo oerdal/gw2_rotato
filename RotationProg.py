@@ -1,27 +1,52 @@
 import sys
 import base64
 import requests
+from Weapon import Weapon
 
 # [&DQEQOw0aPjpLF0sXNgF6FlMXAABHAQAANwEAAAAAAAAAAAAAAAAAAAAAAAA=]
 def main():
-    if len(sys.argv) > 1:
-        build_link = sys.argv[1]
-    else:
-        print('Enter a Build Chat Link:')
-        build_link  = input()
+    # build = load_build()
+    # # print(build)
+    # if build:
+    #     if build['specs']:
+    #         pass
+    # print(build['specs'])
+
+    build = {'specs' : {'id': 62, 'name': 'Firebrand', 'profession': 'Guardian', 'elite': True, 'minor_traits': [2089, 2062, 2148], 'major_traits': [2075, 2101, 2086, 2063, 2076, 2116, 2105, 2179, 2159], 'weapon_trait': 2073, 'icon': 'https://render.guildwars2.com/file/6D18B2D3EE0BFA0E4BC851A7D3C39D4330250916/1769890.png', 'background': 'https://render.guildwars2.com/file/7E6454FF9A13DBE93873AF72E192A74622990171/1769899.png', 'profession_icon_big': 'https://render.guildwars2.com/file/AA12C93CBF5D25E40409060D5CD69E27F72B0892/1770210.png', 'profession_icon': 'https://render.guildwars2.com/file/A1287D0FD1159CAC3A58C212C94A4BD0AB32A8D3/1770211.png'}}
+    load_gear(build['specs'])
+    
+    
+def load_gear(specs):
+    profession = specs['profession']
+    base_url = 'https://api.guildwars2.com/v2/professions/'
+    url = base_url + profession
+    r = requests.get(url)
+    if r.ok:
+        prof_data = r.json()
+        print(prof_data)
+        for k, v in prof_data['weapons'].items():
+            w = Weapon(k, v)
+            print(w)
+
+
+def load_build():
+    print('Enter a Build Chat Link:')
+    # build_link = input()
     build_link = '[&DQEQOw0aPjpLF0sXNgF6FlMXAABHAQAANwEAAAAAAAAAAAAAAAAAAAAAAAA=]'
-    print(build_link)
+
     decoded_build = base64.b64decode(build_link)
     build_hex = decoded_build.hex()
     build_arr = [build_hex[i:i+2] for i in range(len(build_hex)) if i%2==0]
 
     for i in range(2, 7, 2):
-        spec = get_specializations(build_arr[i])
-        if spec:
-            traits = get_traits(build_arr[i+1], spec)
-            print(spec['name'], [t['name'] for t in traits])
+        specs = get_specializations(build_arr[i])
+        if specs:
+            traits = get_traits(build_arr[i+1], specs)
+            print(specs['name'], [t['name'] for t in traits])
     
-    
+    return {'link' : build_link,
+            'specs': specs,
+            'traits': traits}
 
 
 def hex_to_int(byte):

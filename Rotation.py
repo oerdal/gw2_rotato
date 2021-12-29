@@ -38,7 +38,7 @@ class State:
         self.cds = {s: max(self.cds[s], 0) for s in self.cds}
 
 
-class Skill():
+class Skill:
     def __init__(self, name, cast_time, cooldown, damage):
         self.name = name
         self.cast_time = cast_time
