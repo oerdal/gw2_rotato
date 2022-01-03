@@ -1,7 +1,7 @@
 import sys
 import base64
 import requests
-from Weapon import Weapon
+from Weapon import Weapon, Loadout
 
 # [&DQEQOw0aPjpLF0sXNgF6FlMXAABHAQAANwEAAAAAAAAAAAAAAAAAAAAAAAA=]
 def main():
@@ -13,7 +13,7 @@ def main():
     # print(build['specs'])
 
     build = {'specs' : {'id': 62, 'name': 'Firebrand', 'profession': 'Guardian', 'elite': True, 'minor_traits': [2089, 2062, 2148], 'major_traits': [2075, 2101, 2086, 2063, 2076, 2116, 2105, 2179, 2159], 'weapon_trait': 2073, 'icon': 'https://render.guildwars2.com/file/6D18B2D3EE0BFA0E4BC851A7D3C39D4330250916/1769890.png', 'background': 'https://render.guildwars2.com/file/7E6454FF9A13DBE93873AF72E192A74622990171/1769899.png', 'profession_icon_big': 'https://render.guildwars2.com/file/AA12C93CBF5D25E40409060D5CD69E27F72B0892/1770210.png', 'profession_icon': 'https://render.guildwars2.com/file/A1287D0FD1159CAC3A58C212C94A4BD0AB32A8D3/1770211.png'}}
-    load_gear(build['specs'])
+    gear = load_gear(build['specs'])
     
     
 def load_gear(specs):
@@ -23,10 +23,47 @@ def load_gear(specs):
     r = requests.get(url)
     if r.ok:
         prof_data = r.json()
-        print(prof_data)
-        for k, v in prof_data['weapons'].items():
-            w = Weapon(k, v)
-            print(w)
+        # print(prof_data)
+
+        gear = {}
+        gear['weapons'] = load_weapons(prof_data)
+
+        return gear
+        
+
+def load_weapons(prof_data):
+    all_weapons = []
+    for k, v in prof_data['weapons'].items():
+        w = Weapon(k, v)
+        all_weapons.append(w)
+    print('weapons loaded')
+    l = Loadout(all_weapons)
+
+    return {'ws1': select_weapons(l), 'ws2': select_weapons(l)}
+
+
+def select_weapons(l):
+    print(l)
+    while(True):
+        print('Select a Mainhand or a Two Hand weapon: ')
+        w1_name = input().lower()
+        w1 = l.get_weapon_by_name(w1_name)
+        if w1:
+            if w1.is_weapon_type('Mainhand'):
+                while(True):
+                    print('Select an Offhand weapon: ')
+                    w2_name = input().lower()
+                    w2 = l.get_weapon_by_name(w2_name)
+                    if w2 and w2.is_weapon_type('Offhand'):
+                        return (w1, w2)
+                        
+            elif w1.is_weapon_type('TwoHand'):
+                return w1
+
+            else:
+                print('wrong hand')
+        else:
+            print('not a usable weapon')
 
 
 def load_build():
